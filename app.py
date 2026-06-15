@@ -46,12 +46,11 @@ if projects:
     # رفع صور جديدة للدوسي
     uploaded_files = st.file_uploader("📸 إرفع الصور هنا لحفظها وتوليد ملف الوورد (يمكنك اختيار عدة صور معاً):", accept_multiple_files=True, type=["png", "jpg", "jpeg"])
     
-    # تصحيح الخطأ هنا باستخدام getvalue() بدل get_buffer()
     if uploaded_files:
         for uploaded_file in uploaded_files:
             save_path = os.path.join(project_path, uploaded_file.name)
             with open(save_path, "wb") as f:
-                f.write(uploaded_file.getvalue()) # التعديل الصحيح هنا
+                f.write(uploaded_file.getvalue())
         st.success("✅ تم حفظ الصور بنجاح! يرجى إعادة تحديث الصفحة إذا لم تظهر الصور.")
     
     # قراءة الصور الموجودة في الدوسي لعرضها وصنع الوورد منها
@@ -71,7 +70,7 @@ if projects:
             with st.spinner("جاري إعداد ملف الوورد وترتيب الصور..."):
                 doc = Document()
                 
-                # إعدادات الهوامش لتكبير مساحة العرض
+                # إعدادات الهوامش
                 sections = doc.sections
                 for section in sections:
                     section.top_margin = Inches(0.5)
@@ -90,34 +89,44 @@ if projects:
                 doc.add_paragraph(f"نوع المشروع: {choice}").alignment = WD_ALIGN_PARAGRAPH.CENTER
                 doc.add_paragraph("--------------------------------------------------").alignment = WD_ALIGN_PARAGRAPH.CENTER
                 
-                # إضافة الصور في الوورد
+                # إضافة الصور في الوورد مع حماية كاملة ضد الصور الخاسرة
                 if cols_per_page == "صورة واحدة كبيرة في كل صفحة":
                     for img_name in images_in_folder:
                         img_full_path = os.path.join(project_path, img_name)
-                        
-                        p = doc.add_paragraph()
-                        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                        p.add_run(f"📸 {img_name}\n").bold = True
-                        
-                        doc.add_picture(img_full_path, width=Inches(6.5)) 
-                        doc.add_page_break() 
+                        try:
+                            # كنجربوا نفتحوا الصورة بالـ Pillow أولاً للتأكد من سلامتها
+                            with Image.open(img_full_path) as test_img:
+                                p = doc.add_paragraph()
+                                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                                p.add_run(f"📸 {img_name}\n").bold = True
+                                
+                                doc.add_picture(img_full_path, width=Inches(6.5)) 
+                                doc.add_page_break()
+                        except Exception as e:
+                            # يلا كانت خاسرة كيدوز للي بعدها بلا ما يوقف البرنامج
+                            continue
                 else:
                     # صورتين في الصفحة
-                    for idx, img_name in enumerate(images_in_folder):
+                    added_count = 0
+                    for img_name in images_in_folder:
                         img_full_path = os.path.join(project_path, img_name)
-                        
-                        p = doc.add_paragraph()
-                        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                        p.add_run(f"📸 {img_name}").bold = True
-                        
-                        doc.add_picture(img_full_path, width=Inches(5.0)) 
-                        
-                        if (idx + 1) % 2 == 0:
-                            doc.add_page_break()
-                        else:
-                            doc.add_paragraph("\n")
+                        try:
+                            with Image.open(img_full_path) as test_img:
+                                p = doc.add_paragraph()
+                                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                                p.add_run(f"📸 {img_name}").bold = True
+                                
+                                doc.add_picture(img_full_path, width=Inches(5.0)) 
+                                added_count += 1
+                                
+                                if added_count % 2 == 0:
+                                    doc.add_page_break()
+                                else:
+                                    doc.add_paragraph("\n")
+                        except Exception as e:
+                            continue
                 
-                # حفظ الملف في الذاكرة باش يتشارجا ديريكت
+                # حفظ الملف
                 bio = io.BytesIO()
                 doc.save(bio)
                 bio.seek(0)
@@ -139,7 +148,7 @@ if projects:
                 with cols[idx % 3]:
                     st.image(Image.open(img_path), caption=img_name, use_column_width=True)
             except:
-                pass
+                st.error(f"الملف {img_name} تالف أو غير صالح كصورة.")
                 
     else:
         st.info("ℹ️ هاد الدوسي مازال ما فيه حتا شي تصويرة. إرفع أول تصويرة الفوق!")
