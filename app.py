@@ -22,7 +22,7 @@ for folder in [BC_DIR, MARCHE_DIR]:
 
 # القائمة الجانبية
 st.sidebar.header("🔍 تصفح وأرشِف")
-choice = st.sidebar.radio("اختر نوع المشروع:", ["سندات الطلب (Bons de Commande)", "الصفقات (Les Marchés)"])
+choice = st.sidebar.radio("اختر نوع المشروع:", ["Bons de Commande", "Les Marchés"])
 target_dir = BC_DIR if "Bons de Commande" in choice else MARCHE_DIR
 
 # قراءة المشاريع الحالية
@@ -43,13 +43,13 @@ if projects:
     
     st.header(f"🏗️ المشروع الحالي: {selected_project}")
     
-    # 📝 خانات معلومات الـ BC أو المارشي لي غاتبان الفوق د الورقة
-    st.markdown("### 📝 معلومات وثيقة الوورد (التقرير)")
+    # 📝 خانات المعلومات بالفرنسية الآن ومحاذية لليسار لتبدو إدارية وصحيحة
+    st.markdown("### 📝 Informations du Document")
     col_info1, col_info2 = st.columns(2)
     with col_info1:
-        doc_number = st.text_input("📄 رقم سند الطلب / الصفقة (N° de BC / Marché):", value=selected_project)
+        doc_number = st.text_input("📄 N° BC / Marché:", value=selected_project)
     with col_info2:
-        doc_subject = st.text_input("🎯 موضوع سند الطلب / الصفقة (Objet):", placeholder="مثال: أشغال التطهير السائل، الإنارة العمومية...")
+        doc_subject = st.text_input("🎯 Objet:", placeholder="Ex: Travaux d'éclairage public, revêtement...")
     
     st.markdown("---")
     
@@ -89,25 +89,25 @@ if projects:
                     section.left_margin = Inches(0.6)
                     section.right_margin = Inches(0.6)
                 
-                # ترويسة معلومات الـ Bon de commande الفوق د الورقة
+                # 🔝 ترويسة إدارية بالفرنسية ومحاذية لليسار (Left Alignment)
                 header_p = doc.add_paragraph()
-                header_p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+                header_p.alignment = WD_ALIGN_PARAGRAPH.LEFT
                 
-                run_type = header_p.add_run(f"نوع الإجراء: {choice}\n")
+                run_type = header_p.add_run(f"Type: {choice}\n")
                 run_type.font.name = 'Arial'
-                run_type.font.size = Pt(12)
+                run_type.font.size = Pt(11)
                 
-                run_num = header_p.add_run(f"رقم سند الطلب / الصفقة: {doc_number}\n")
+                run_num = header_p.add_run(f"N° BC/Marché: {doc_number}\n")
                 run_num.font.name = 'Arial'
                 run_num.font.size = Pt(14)
                 run_num.bold = True
                 
-                run_obj = header_p.add_run(f"الموضوع: {doc_subject if doc_subject else 'غير محدد'}\n")
+                run_obj = header_p.add_run(f"Objet: {doc_subject if doc_subject else 'Non spécifié'}\n")
                 run_obj.font.name = 'Arial'
                 run_obj.font.size = Pt(12)
                 run_obj.italic = True
                 
-                # خط فاصل
+                # خط فاصل تحت المعلومات
                 p_line = doc.add_paragraph()
                 p_line.alignment = WD_ALIGN_PARAGRAPH.CENTER
                 p_line.add_run("__________________________________________________________________")
@@ -124,10 +124,10 @@ if projects:
                                 p_img.alignment = WD_ALIGN_PARAGRAPH.CENTER
                                 p_img.add_run().add_picture(img_full_path, width=Inches(6.2))
                                 
-                                # العنوان ف السنطر ديريكت تحتها
+                                # العنوان ف السنطر ديريكت تحتها بدون كلمة "العنوان" العربية
                                 p_caption = doc.add_paragraph()
                                 p_caption.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                                run_cap = p_caption.add_run(f"📸 العنوان: {os.path.splitext(img_name)[0]}")
+                                run_cap = p_caption.add_run(f"📸 {os.path.splitext(img_name)[0]}")
                                 run_cap.font.name = 'Arial'
                                 run_cap.font.size = Pt(12)
                                 run_cap.bold = True
@@ -150,7 +150,7 @@ if projects:
                                 # العنوان ف السنطر تحتها
                                 p_caption = doc.add_paragraph()
                                 p_caption.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                                run_cap = p_caption.add_run(f"📸 العنوان: {os.path.splitext(img_name)[0]}")
+                                run_cap = p_caption.add_run(f"📸 {os.path.splitext(img_name)[0]}")
                                 run_cap.font.name = 'Arial'
                                 run_cap.font.size = Pt(11)
                                 run_cap.bold = True
