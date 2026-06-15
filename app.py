@@ -46,12 +46,13 @@ if projects:
     # رفع صور جديدة للدوسي
     uploaded_files = st.file_uploader("📸 إرفع الصور هنا لحفظها وتوليد ملف الوورد (يمكنك اختيار عدة صور معاً):", accept_multiple_files=True, type=["png", "jpg", "jpeg"])
     
+    # تصحيح الخطأ هنا باستخدام getvalue() بدل get_buffer()
     if uploaded_files:
         for uploaded_file in uploaded_files:
             save_path = os.path.join(project_path, uploaded_file.name)
             with open(save_path, "wb") as f:
-                f.write(uploaded_file.get_buffer())
-        st.success("✅ تم حفظ الصور في الدوسي بنجاح!")
+                f.write(uploaded_file.getvalue()) # التعديل الصحيح هنا
+        st.success("✅ تم حفظ الصور بنجاح! يرجى إعادة تحديث الصفحة إذا لم تظهر الصور.")
     
     # قراءة الصور الموجودة في الدوسي لعرضها وصنع الوورد منها
     valid_extensions = (".png", ".jpg", ".jpeg", ".webp")
@@ -98,8 +99,8 @@ if projects:
                         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
                         p.add_run(f"📸 {img_name}\n").bold = True
                         
-                        doc.add_picture(img_full_path, width=Inches(6.5)) # حجم كبير ملاءم للصفحة
-                        doc.add_page_break() # صفحة جديدة للصورة الموالية
+                        doc.add_picture(img_full_path, width=Inches(6.5)) 
+                        doc.add_page_break() 
                 else:
                     # صورتين في الصفحة
                     for idx, img_name in enumerate(images_in_folder):
@@ -109,9 +110,8 @@ if projects:
                         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
                         p.add_run(f"📸 {img_name}").bold = True
                         
-                        doc.add_picture(img_full_path, width=Inches(5.0)) # حجم متناسق باش يجيو جوج
+                        doc.add_picture(img_full_path, width=Inches(5.0)) 
                         
-                        # يلا كملنا جوج تصاور نديرو صفحة جديدة، وإلا غير فراغ
                         if (idx + 1) % 2 == 0:
                             doc.add_page_break()
                         else:
@@ -132,12 +132,14 @@ if projects:
         
         st.markdown("---")
         st.markdown("### 👁️ معاينة الصور على التطبيق:")
-        # عرض شبكة الصور في التطبيق للعرض فقط
         cols = st.columns(3)
         for idx, img_name in enumerate(images_in_folder):
             img_path = os.path.join(project_path, img_name)
-            with cols[idx % 3]:
-                st.image(Image.open(img_path), caption=img_name, use_column_width=True)
+            try:
+                with cols[idx % 3]:
+                    st.image(Image.open(img_path), caption=img_name, use_column_width=True)
+            except:
+                pass
                 
     else:
         st.info("ℹ️ هاد الدوسي مازال ما فيه حتا شي تصويرة. إرفع أول تصويرة الفوق!")
